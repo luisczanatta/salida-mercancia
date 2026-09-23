@@ -3,224 +3,332 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#0f172a">
 
-  <title>Salida de mercancía</title>
+  <title>Aprovisionamientos</title>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
     :root{
-      --bg:#f3f4f6;
+      --bg:#f1f5f9;
       --card:#ffffff;
-      --text:#111827;
-      --muted:#6b7280;
-      --line:#d1d5db;
-      --primary:#111827;
-      --soft:#e5e7eb;
-      --blue:#dbeafe;
-      --blueText:#1d4ed8;
-      --danger:#fee2e2;
-      --dangerText:#b91c1c;
-      --ok:#dcfce7;
-      --okText:#166534;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --dark:#0f172a;
+      --green:#16a34a;
+      --greenSoft:#dcfce7;
+      --red:#dc2626;
+      --redSoft:#fee2e2;
+      --amber:#d97706;
+      --amberSoft:#fef3c7;
     }
 
     *{box-sizing:border-box}
 
     body{
       margin:0;
-      background:var(--bg);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at top, #dbeafe 0, transparent 32%),
+        var(--bg);
       color:var(--text);
       font-family:Arial,Helvetica,sans-serif;
     }
 
     .app{
-      max-width:650px;
+      max-width:560px;
       margin:auto;
-      padding:18px 14px 42px;
+      padding:18px 12px 42px;
     }
 
-    .card{
-      background:var(--card);
-      border-radius:18px;
-      padding:18px;
-      box-shadow:0 5px 18px rgba(0,0,0,.07);
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
       margin-bottom:14px;
     }
 
-    h1{
-      font-size:22px;
-      margin:0 0 4px;
+    .title h1{
+      margin:0;
+      font-size:23px;
+      letter-spacing:-.4px;
     }
 
-    .sub{
+    .title .sub{
+      margin-top:3px;
       color:var(--muted);
       font-size:13px;
-      margin-bottom:18px;
     }
 
-    label{
-      display:block;
-      font-weight:700;
-      font-size:13px;
-      margin:14px 0 6px;
+    .session{
+      text-align:right;
+      font-size:12px;
+      color:var(--muted);
+      max-width:210px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
 
-    input,select,textarea{
+    .card{
+      background:rgba(255,255,255,.96);
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:22px;
+      box-shadow:0 12px 34px rgba(15,23,42,.08);
+      overflow:hidden;
+    }
+
+    .scanner-shell{
+      padding:14px;
+      transition:
+        background .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
+    }
+
+    .scanner-shell.flash-ok{
+      background:var(--greenSoft);
+      box-shadow:0 0 0 3px rgba(22,163,74,.18);
+      transform:scale(.997);
+    }
+
+    .scanner-shell.flash-error{
+      background:var(--redSoft);
+      box-shadow:0 0 0 3px rgba(220,38,38,.16);
+    }
+
+    #reader{
       width:100%;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:12px;
-      font-size:16px;
-      background:#fff;
-      color:var(--text);
-      outline:none;
+      min-height:310px;
+      border-radius:18px;
+      overflow:hidden;
+      background:#020617;
     }
 
-    input:focus,
-    select:focus,
-    textarea:focus{
-      border-color:#6b7280;
+    #reader video{
+      border-radius:18px!important;
+      object-fit:cover!important;
     }
 
-    textarea{
-      min-height:82px;
-      resize:vertical;
+    .camera-off{
+      min-height:310px;
+      border-radius:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:10px;
+      text-align:center;
+      background:#0f172a;
+      color:white;
+      padding:24px;
     }
 
-    .row{
-      display:grid;
-      grid-template-columns:1fr 92px;
-      gap:8px;
-    }
-
-    .actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-      margin-top:9px;
+    .camera-icon{
+      font-size:42px;
     }
 
     button{
       border:0;
-      border-radius:12px;
-      padding:13px 12px;
+      border-radius:14px;
+      padding:13px 16px;
       font-size:15px;
-      font-weight:700;
+      font-weight:800;
       cursor:pointer;
     }
 
-    button:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
-
     .primary{
-      background:var(--primary);
+      background:#fff;
+      color:#0f172a;
+    }
+
+    .dark{
+      background:var(--dark);
       color:#fff;
-    }
-
-    .secondary{
-      background:var(--soft);
-      color:var(--text);
-    }
-
-    .scan{
-      background:var(--blue);
-      color:var(--blueText);
-    }
-
-    .danger{
-      background:var(--danger);
-      color:var(--dangerText);
-      padding:7px 10px;
-    }
-
-    .articulo{
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      padding:12px;
-      margin-top:9px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-    }
-
-    .sku{
-      font-weight:800;
-      word-break:break-all;
-    }
-
-    .desc{
-      font-size:13px;
-      color:var(--muted);
-      margin-top:3px;
-    }
-
-    .qty{
-      font-size:13px;
-      margin-top:4px;
-    }
-
-    #reader{
-      margin-top:12px;
-      border-radius:12px;
-      overflow:hidden;
-      background:#000;
-    }
-
-    .hidden{
-      display:none!important;
+      width:100%;
     }
 
     .status{
-      padding:11px;
-      border-radius:10px;
-      margin-top:12px;
+      margin:12px 14px 14px;
+      border-radius:16px;
+      padding:13px 14px;
+      background:#f8fafc;
+      border:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      gap:11px;
+    }
+
+    .status-dot{
+      width:11px;
+      height:11px;
+      flex:0 0 11px;
+      border-radius:50%;
+      background:#94a3b8;
+    }
+
+    .status.ok .status-dot{background:var(--green)}
+    .status.wait .status-dot{background:var(--amber)}
+    .status.error .status-dot{background:var(--red)}
+
+    .status-main{
       font-size:14px;
-      background:#eff6ff;
-      color:#1d4ed8;
-    }
-
-    .status.error{
-      background:var(--danger);
-      color:var(--dangerText);
-    }
-
-    .status.ok{
-      background:var(--ok);
-      color:var(--okText);
-    }
-
-    .success{
-      text-align:center;
-      padding:20px 8px;
-    }
-
-    .success .check{
-      font-size:42px;
-    }
-
-    .success h2{
-      margin:8px 0;
-    }
-
-    .folio{
-      font-size:21px;
       font-weight:800;
     }
 
-    .mini{
+    .status-sub{
+      margin-top:2px;
       color:var(--muted);
       font-size:12px;
-      margin-top:5px;
     }
 
-    .loading{
-      opacity:.7;
-      pointer-events:none;
+    .recent{
+      margin-top:14px;
+      background:rgba(255,255,255,.9);
+      border-radius:20px;
+      box-shadow:0 8px 28px rgba(15,23,42,.06);
+      padding:15px;
     }
+
+    .recent-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+
+    .recent-head strong{
+      font-size:14px;
+    }
+
+    .counter{
+      background:#e2e8f0;
+      border-radius:999px;
+      padding:5px 9px;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .scan-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:11px 4px;
+      border-top:1px solid var(--line);
+    }
+
+    .scan-row:first-of-type{
+      border-top:0;
+    }
+
+    .scan-code{
+      font-weight:900;
+      font-size:14px;
+      word-break:break-all;
+    }
+
+    .scan-time{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:2px;
+    }
+
+    .check{
+      color:var(--green);
+      font-weight:900;
+      font-size:19px;
+    }
+
+    .empty{
+      color:var(--muted);
+      font-size:13px;
+      padding:12px 3px 4px;
+    }
+
+    .login{
+      min-height:75vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .login-card{
+      width:min(420px,100%);
+      background:#fff;
+      border-radius:24px;
+      padding:26px 22px;
+      box-shadow:0 18px 50px rgba(15,23,42,.12);
+      text-align:center;
+    }
+
+    .login-logo{
+      width:64px;
+      height:64px;
+      margin:0 auto 14px;
+      border-radius:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#0f172a;
+      color:#fff;
+      font-size:30px;
+    }
+
+    .login-card h2{
+      margin:0;
+      font-size:22px;
+    }
+
+    .login-card p{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+      margin:8px 0 18px;
+    }
+
+    #googleButton{
+      display:flex;
+      justify-content:center;
+    }
+
+    .manual{
+      margin-top:12px;
+      display:flex;
+      gap:8px;
+    }
+
+    .manual input{
+      flex:1;
+      min-width:0;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:11px;
+      font-size:15px;
+    }
+
+    .manual button{
+      background:#e2e8f0;
+      color:#0f172a;
+      white-space:nowrap;
+    }
+
+    .link-btn{
+      margin-top:10px;
+      width:100%;
+      border:0;
+      background:transparent;
+      color:#64748b;
+      font-size:12px;
+      padding:7px;
+    }
+
+    .hidden{display:none!important}
 
     iframe.backend-frame{
       position:absolute;
@@ -231,414 +339,229 @@
       top:-9999px;
     }
 
-    @media (max-width:420px){
-      .app{padding-left:10px;padding-right:10px}
-      .card{padding:15px}
-      .actions{grid-template-columns:1fr}
+    @media(max-width:430px){
+      .app{padding:12px 8px 34px}
+      .scanner-shell{padding:9px}
+      #reader,.camera-off{min-height:58vh}
+      .title h1{font-size:20px}
     }
   </style>
 </head>
 
 <body>
-<div class="app">
 
-  <div class="card" id="formCard">
+<section id="loginView" class="login">
+  <div class="login-card">
+    <div class="login-logo">▣</div>
+    <h2>Aprovisionamientos</h2>
+    <p>
+      Ingresa con tu cuenta de Google. Después la aplicación abrirá
+      directamente el escáner.
+    </p>
+    <div id="googleButton"></div>
+    <div id="loginMsg" style="margin-top:12px;color:#dc2626;font-size:13px"></div>
+  </div>
+</section>
 
-    <h1>Salida de mercancía</h1>
-    <div class="sub">Registro durante tienda cerrada</div>
+<main id="appView" class="app hidden">
 
-    <label>Correo</label>
-    <input
-      id="correo"
-      type="email"
-      autocomplete="email"
-      placeholder="correo@empresa.com"
-    >
-    <div class="mini">Se recuerda en este dispositivo.</div>
-
-    <label>Nombre</label>
-    <input
-      id="nombre"
-      autocomplete="name"
-      placeholder="Nombre de quien realiza la salida"
-    >
-
-    <label>Bodega</label>
-    <select id="bodega">
-      <option value="">Cargando...</option>
-    </select>
-
-    <label>Motivo</label>
-    <select id="motivo">
-      <option value="">Cargando...</option>
-    </select>
-
-    <label>Quién autoriza</label>
-    <input
-      id="autoriza"
-      placeholder="Nombre o número de empleado"
-    >
-
-    <label>Destino</label>
-    <input
-      id="destino"
-      placeholder="¿A dónde se lleva?"
-    >
-
-    <label>Agregar mercancía</label>
-
-    <div class="row">
-      <input
-        id="sku"
-        inputmode="numeric"
-        autocomplete="off"
-        placeholder="Escanea o escribe SKU"
-      >
-
-      <input
-        id="cantidad"
-        type="number"
-        min="1"
-        step="1"
-        value="1"
-      >
+  <div class="top">
+    <div class="title">
+      <h1>Aprovisionamientos</h1>
+      <div class="sub">Escanea y continúa</div>
     </div>
 
-    <div class="actions">
-      <button
-        type="button"
-        class="secondary"
-        onclick="agregarSkuManual()"
-      >
-        ＋ Agregar
-      </button>
+    <div class="session" id="sessionEmail"></div>
+  </div>
 
-      <button
-        type="button"
-        class="scan"
-        onclick="abrirScanner()"
-      >
-        ▣ Escanear
-      </button>
-    </div>
+  <section class="card">
+    <div id="scannerShell" class="scanner-shell">
 
-    <div id="scannerWrap" class="hidden">
       <div id="reader"></div>
 
-      <button
-        type="button"
-        class="secondary"
-        style="width:100%;margin-top:8px"
-        onclick="cerrarScanner()"
-      >
-        Cerrar cámara
-      </button>
+      <div id="cameraOff" class="camera-off hidden">
+        <div class="camera-icon">📷</div>
+        <strong>Activa la cámara</strong>
+        <div style="font-size:13px;color:#cbd5e1">
+          Solo se necesita una vez en este dispositivo.
+        </div>
+        <button class="primary" onclick="iniciarCamara()">
+          ABRIR ESCÁNER
+        </button>
+      </div>
+
     </div>
 
-    <div id="lista"></div>
+    <div id="statusBox" class="status">
+      <div class="status-dot"></div>
+      <div>
+        <div id="statusMain" class="status-main">Preparando escáner...</div>
+        <div id="statusSub" class="status-sub"></div>
+      </div>
+    </div>
+  </section>
 
-    <label>Observaciones</label>
-    <textarea
-      id="observaciones"
-      placeholder="Opcional"
-    ></textarea>
+  <section class="recent">
+    <div class="recent-head">
+      <strong>Últimos registros</strong>
+      <span id="counter" class="counter">0</span>
+    </div>
 
-    <button
-      id="btnGuardar"
-      class="primary"
-      style="width:100%;margin-top:16px"
-      onclick="guardar()"
-    >
-      CONFIRMAR SALIDA
+    <div id="recentList">
+      <div class="empty">Todavía no has escaneado nada.</div>
+    </div>
+
+    <button id="manualToggle" class="link-btn" onclick="toggleManual()">
+      Captura manual
     </button>
 
-    <div id="status" class="status hidden"></div>
+    <div id="manualBox" class="manual hidden">
+      <input
+        id="manualSku"
+        autocomplete="off"
+        inputmode="numeric"
+        placeholder="Escribe SKU"
+      >
+      <button onclick="registrarManual()">Registrar</button>
+    </div>
+  </section>
 
-  </div>
-
-  <div class="card success hidden" id="successCard">
-    <div class="check">✓</div>
-    <h2>Salida registrada</h2>
-    <div class="folio" id="folio"></div>
-    <div id="resumen" class="sub" style="margin-top:8px"></div>
-
-    <button
-      class="primary"
-      style="width:100%"
-      onclick="nuevaSalida()"
-    >
-      Nueva salida
-    </button>
-  </div>
-
-</div>
-
-<iframe
-  id="backendFrame"
-  name="backendFrame"
-  class="backend-frame"
-></iframe>
-
-<form
-  id="backendForm"
-  method="POST"
-  target="backendFrame"
-  class="hidden"
->
-  <input type="hidden" name="payload" id="backendPayload">
-  <input type="hidden" name="requestId" id="backendRequestId">
-</form>
+</main>
 
 <script>
-  /*************************************************************
-   * PEGA AQUÍ LA URL DEL WEB APP DE APPS SCRIPT.
-   * Debe terminar en /exec
-   *************************************************************/
   const API_URL = 'https://script.google.com/macros/s/AKfycbwxLnWaSq2SosMGELgnIdBv3URvlhWCfXtzYC4NKmHnK_cUDmtYHhPAO5H6DBaqZeVahw/exec';
 
-  let articulos = [];
+  let appConfig = null;
+  let googleCredential = '';
+  let usuario = null;
   let scanner = null;
-  let ultimoRequestId = '';
-  let jsonpCounter = 0;
+  let scannerActivo = false;
+
+  const bloqueados = new Map();
+  const peticiones = new Map();
+  const recientes = [];
 
   document.addEventListener('DOMContentLoaded', iniciar);
 
   async function iniciar(){
-    restaurarIdentidad();
+    window.addEventListener('message', recibirBackend);
 
-    document.getElementById('sku').addEventListener('keydown', e => {
-      if(e.key === 'Enter'){
-        e.preventDefault();
-        agregarSkuManual();
+    try{
+      const r = await jsonp('config');
+
+      if(!r.ok){
+        throw new Error(r.error || 'No se pudo cargar configuración.');
       }
+
+      appConfig = r.data || {};
+
+      if(
+        !appConfig.googleClientId ||
+        appConfig.googleClientId === 'PEGA_AQUI_TU_CLIENT_ID_DE_GOOGLE'
+      ){
+        throw new Error(
+          'Falta configurar GOOGLE_CLIENT_ID en la pestaña CONFIG.'
+        );
+      }
+
+      esperarGoogle();
+
+    }catch(err){
+      document.getElementById('loginMsg').textContent = err.message;
+    }
+  }
+
+  function esperarGoogle(){
+    let intentos = 0;
+
+    const timer = setInterval(() => {
+      intentos++;
+
+      if(window.google && google.accounts && google.accounts.id){
+        clearInterval(timer);
+        prepararGoogle();
+        return;
+      }
+
+      if(intentos > 80){
+        clearInterval(timer);
+        document.getElementById('loginMsg').textContent =
+          'No se pudo cargar el acceso con Google.';
+      }
+    }, 100);
+  }
+
+  function prepararGoogle(){
+    google.accounts.id.initialize({
+      client_id: appConfig.googleClientId,
+      callback: onGoogleCredential,
+      auto_select: true,
+      cancel_on_tap_outside: false
     });
 
-    window.addEventListener('message', recibirRespuestaBackend);
+    google.accounts.id.renderButton(
+      document.getElementById('googleButton'),
+      {
+        theme:'outline',
+        size:'large',
+        shape:'pill',
+        width:300,
+        text:'continue_with'
+      }
+    );
 
-    if(!apiConfigurada()){
-      llenarSelect(
-        'bodega',
-        ['Bodega Deportes','Bodega Calzado Deportivo'],
-        'Selecciona bodega'
-      );
+    google.accounts.id.prompt();
+  }
 
-      llenarSelect(
-        'motivo',
-        ['Traslado','Entrega','Reparación / servicio','Exhibición / evento','Otro'],
-        'Selecciona motivo'
-      );
-
-      mostrarStatus(
-        'Falta pegar la URL del Apps Script en API_URL.',
-        'error',
-        0
-      );
-
+  function onGoogleCredential(resp){
+    if(!resp || !resp.credential){
+      document.getElementById('loginMsg').textContent =
+        'No se pudo identificar la cuenta.';
       return;
     }
 
     try{
-      const resp = await jsonp('inicial');
+      const payload = decodificarJwt(resp.credential);
 
-      if(!resp.ok){
-        throw new Error(resp.error || 'No se pudo cargar configuración.');
+      googleCredential = resp.credential;
+      usuario = {
+        email: payload.email || '',
+        name: payload.name || ''
+      };
+
+      if(!usuario.email){
+        throw new Error('Google no devolvió el correo.');
       }
 
-      llenarSelect(
-        'bodega',
-        resp.data.bodegas || [],
-        'Selecciona bodega'
+      document.getElementById('sessionEmail').textContent = usuario.email;
+
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('appView').classList.remove('hidden');
+
+      setStatus(
+        'Listo para escanear',
+        'La fecha, hora y usuario se guardan automáticamente.',
+        'ok'
       );
 
-      llenarSelect(
-        'motivo',
-        resp.data.motivos || [],
-        'Selecciona motivo'
-      );
+      iniciarCamara();
 
     }catch(err){
-      mostrarStatus(
-        'No se pudo conectar con Apps Script: ' + err.message,
-        'error',
-        0
-      );
+      document.getElementById('loginMsg').textContent = err.message;
     }
   }
 
-  function apiConfigurada(){
-    return (
-      API_URL &&
-      API_URL.startsWith('https://script.google.com/macros/s/') &&
-      API_URL.endsWith('/exec')
-    );
-  }
+  async function iniciarCamara(){
+    if(scannerActivo) return;
 
-  function restaurarIdentidad(){
-    try{
-      document.getElementById('correo').value =
-        localStorage.getItem('salidas_correo') || '';
-
-      document.getElementById('nombre').value =
-        localStorage.getItem('salidas_nombre') || '';
-    }catch(e){}
-  }
-
-  function guardarIdentidad(){
-    try{
-      localStorage.setItem(
-        'salidas_correo',
-        document.getElementById('correo').value.trim()
-      );
-
-      localStorage.setItem(
-        'salidas_nombre',
-        document.getElementById('nombre').value.trim()
-      );
-    }catch(e){}
-  }
-
-  function llenarSelect(id, opciones, placeholder){
-    const el = document.getElementById(id);
-
-    el.innerHTML = '';
-
-    const inicial = document.createElement('option');
-    inicial.value = '';
-    inicial.textContent = placeholder;
-    el.appendChild(inicial);
-
-    (opciones || []).forEach(v => {
-      const op = document.createElement('option');
-      op.value = v;
-      op.textContent = v;
-      el.appendChild(op);
-    });
-  }
-
-  function agregarSkuManual(){
-    const sku = String(
-      document.getElementById('sku').value || ''
-    ).trim();
-
-    if(!sku){
-      return mostrarStatus('Escribe o escanea un SKU.', 'error');
-    }
-
-    buscarYAgregarSku(sku);
-  }
-
-  async function buscarYAgregarSku(sku){
-    const cantidad = Number(
-      document.getElementById('cantidad').value || 1
-    );
-
-    if(!Number.isFinite(cantidad) || cantidad <= 0){
-      return mostrarStatus('Cantidad inválida.', 'error');
-    }
-
-    try{
-      let descripcion = '';
-      let encontrado = false;
-
-      if(apiConfigurada()){
-        const resp = await jsonp('buscarSku', { sku });
-
-        if(!resp.ok){
-          throw new Error(resp.error || 'Error buscando SKU.');
-        }
-
-        encontrado = !!resp.data.encontrado;
-        descripcion = resp.data.descripcion || '';
-      }
-
-      if(!encontrado){
-        descripcion = prompt(
-          'SKU no encontrado en CATALOGO_SKU.\nEscribe una descripción:'
-        ) || 'SKU no catalogado';
-      }
-
-      const existente = articulos.find(
-        a => a.sku === String(sku)
-      );
-
-      if(existente){
-        existente.cantidad += cantidad;
-      }else{
-        articulos.push({
-          sku: String(sku),
-          descripcion: descripcion,
-          cantidad: cantidad
-        });
-      }
-
-      document.getElementById('sku').value = '';
-      document.getElementById('cantidad').value = 1;
-
-      renderLista();
-
-      setTimeout(() => {
-        document.getElementById('sku').focus();
-      }, 50);
-
-    }catch(err){
-      mostrarStatus(
-        'No se pudo consultar el SKU: ' + err.message,
-        'error'
-      );
-    }
-  }
-
-  function renderLista(){
-    const lista = document.getElementById('lista');
-    lista.innerHTML = '';
-
-    articulos.forEach((a, i) => {
-      const div = document.createElement('div');
-      div.className = 'articulo';
-
-      div.innerHTML = `
-        <div>
-          <div class="sku">${esc(a.sku)}</div>
-          <div class="desc">
-            ${esc(a.descripcion || 'Sin descripción')}
-          </div>
-          <div class="qty">
-            Cantidad: ${Number(a.cantidad)}
-          </div>
-        </div>
-
-        <div>
-          <button
-            type="button"
-            class="danger"
-            onclick="eliminarArticulo(${i})"
-          >
-            Eliminar
-          </button>
-        </div>
-      `;
-
-      lista.appendChild(div);
-    });
-  }
-
-  function eliminarArticulo(i){
-    articulos.splice(i, 1);
-    renderLista();
-  }
-
-  async function abrirScanner(){
-    if(scanner) return;
-
-    document
-      .getElementById('scannerWrap')
-      .classList.remove('hidden');
+    document.getElementById('cameraOff').classList.add('hidden');
+    document.getElementById('reader').classList.remove('hidden');
 
     try{
       scanner = new Html5Qrcode(
         'reader',
         {
-          formatsToSupport: [
+          formatsToSupport:[
             Html5QrcodeSupportedFormats.EAN_13,
             Html5QrcodeSupportedFormats.EAN_8,
             Html5QrcodeSupportedFormats.UPC_A,
@@ -654,293 +577,341 @@
       await scanner.start(
         { facingMode:'environment' },
         {
-          fps:10,
-          qrbox:{
-            width:280,
-            height:120
-          },
-          aspectRatio:1.777778
+          fps:12,
+          qrbox:{width:280,height:125},
+          aspectRatio:1.6
         },
-        async decodedText => {
-          const codigo = String(decodedText || '').trim();
-
-          if(!codigo) return;
-
-          await cerrarScanner();
-
-          document.getElementById('sku').value = codigo;
-
-          buscarYAgregarSku(codigo);
+        codigo => {
+          detectarCodigo(codigo);
         },
         () => {}
       );
 
+      scannerActivo = true;
+
+      setStatus(
+        'Escáner activo',
+        'Apunta al código. No necesitas presionar ningún botón.',
+        'ok'
+      );
+
     }catch(err){
+      scannerActivo = false;
       scanner = null;
 
-      document
-        .getElementById('scannerWrap')
-        .classList.add('hidden');
+      document.getElementById('reader').classList.add('hidden');
+      document.getElementById('cameraOff').classList.remove('hidden');
 
-      mostrarStatus(
-        'No se pudo abrir la cámara. Revisa el permiso del navegador.',
+      setStatus(
+        'Cámara sin permiso',
+        'Toca “Abrir escáner” y permite el acceso a la cámara.',
         'error'
       );
     }
   }
 
-  async function cerrarScanner(){
-    if(scanner){
-      try{
-        if(scanner.isScanning){
-          await scanner.stop();
-        }
+  function detectarCodigo(raw){
+    const sku = String(raw || '').trim();
 
-        await scanner.clear();
-      }catch(e){}
+    if(!sku || !googleCredential) return;
 
-      scanner = null;
-    }
+    const ahora = Date.now();
+    const hasta = bloqueados.get(sku) || 0;
 
-    document
-      .getElementById('scannerWrap')
-      .classList.add('hidden');
-  }
+    if(ahora < hasta) return;
 
-  function guardar(){
-    if(!apiConfigurada()){
-      return mostrarStatus(
-        'Primero pega la URL del Apps Script en API_URL.',
-        'error'
-      );
-    }
+    bloqueados.set(sku, ahora + 2500);
 
-    const data = {
-      correo: document.getElementById('correo').value.trim(),
-      nombre: document.getElementById('nombre').value.trim(),
-      bodega: document.getElementById('bodega').value,
-      motivo: document.getElementById('motivo').value,
-      autoriza: document.getElementById('autoriza').value.trim(),
-      destino: document.getElementById('destino').value.trim(),
-      observaciones: document.getElementById('observaciones').value.trim(),
-      articulos: articulos
-    };
+    setStatus(
+      'Código detectado',
+      sku + ' · guardando...',
+      'wait'
+    );
 
-    if(!data.correo){
-      return mostrarStatus('Captura el correo.', 'error');
-    }
+    enviarRegistro(sku)
+      .then(result => {
+        flashOk();
 
-    if(!correoValido(data.correo)){
-      return mostrarStatus('El correo no es válido.', 'error');
-    }
-
-    if(!data.nombre){
-      return mostrarStatus('Captura el nombre.', 'error');
-    }
-
-    if(!data.bodega){
-      return mostrarStatus('Selecciona una bodega.', 'error');
-    }
-
-    if(!data.motivo){
-      return mostrarStatus('Selecciona un motivo.', 'error');
-    }
-
-    if(!articulos.length){
-      return mostrarStatus('Agrega al menos un SKU.', 'error');
-    }
-
-    guardarIdentidad();
-
-    const btn = document.getElementById('btnGuardar');
-
-    btn.disabled = true;
-    btn.textContent = 'GUARDANDO...';
-
-    ultimoRequestId =
-      Date.now().toString(36) +
-      Math.random().toString(36).slice(2);
-
-    const form = document.getElementById('backendForm');
-
-    form.action = API_URL;
-
-    document.getElementById('backendPayload').value =
-      JSON.stringify(data);
-
-    document.getElementById('backendRequestId').value =
-      ultimoRequestId;
-
-    form.submit();
-
-    setTimeout(() => {
-      if(btn.disabled){
-        btn.disabled = false;
-        btn.textContent = 'CONFIRMAR SALIDA';
-
-        mostrarStatus(
-          'No llegó respuesta del servidor. Revisa el Sheet antes de volver a enviar.',
-          'error',
-          0
+        setStatus(
+          'Registrado',
+          result.sku + ' · ' + result.hora,
+          'ok'
         );
-      }
-    }, 20000);
+
+        agregarReciente(result);
+
+        try{
+          if(navigator.vibrate) navigator.vibrate(80);
+        }catch(e){}
+
+        beep();
+
+      })
+      .catch(err => {
+        bloqueados.delete(sku);
+        flashError();
+
+        setStatus(
+          'No se pudo guardar',
+          err.message || String(err),
+          'error'
+        );
+      });
   }
 
-  function recibirRespuestaBackend(event){
+  function enviarRegistro(sku){
+    return new Promise((resolve,reject) => {
+      const requestId =
+        'APR-' +
+        Date.now().toString(36) +
+        '-' +
+        Math.random().toString(36).slice(2,9);
+
+      const frameName = 'frame_' + requestId.replace(/[^a-zA-Z0-9_]/g,'_');
+
+      const iframe = document.createElement('iframe');
+      iframe.name = frameName;
+      iframe.className = 'backend-frame';
+      document.body.appendChild(iframe);
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = API_URL;
+      form.target = frameName;
+      form.className = 'hidden';
+
+      const payloadInput = document.createElement('input');
+      payloadInput.type = 'hidden';
+      payloadInput.name = 'payload';
+      payloadInput.value = JSON.stringify({
+        sku:sku,
+        credential:googleCredential
+      });
+
+      const requestInput = document.createElement('input');
+      requestInput.type = 'hidden';
+      requestInput.name = 'requestId';
+      requestInput.value = requestId;
+
+      form.appendChild(payloadInput);
+      form.appendChild(requestInput);
+      document.body.appendChild(form);
+
+      const timeout = setTimeout(() => {
+        limpiarPeticion(requestId);
+        reject(
+          new Error(
+            'Sin respuesta del servidor. Revisa conexión antes de repetir.'
+          )
+        );
+      }, 15000);
+
+      peticiones.set(requestId,{
+        resolve,
+        reject,
+        timeout,
+        iframe,
+        form
+      });
+
+      form.submit();
+    });
+  }
+
+  function recibirBackend(event){
     const msg = event.data;
 
     if(
       !msg ||
       typeof msg !== 'object' ||
-      msg.type !== 'SALIDA_GUARDADA'
+      msg.type !== 'APROVISIONAMIENTO_GUARDADO'
     ){
       return;
     }
 
-    if(
-      ultimoRequestId &&
-      msg.requestId !== ultimoRequestId
-    ){
-      return;
+    const req = peticiones.get(msg.requestId);
+
+    if(!req) return;
+
+    if(msg.ok){
+      req.resolve(msg.result);
+    }else{
+      req.reject(new Error(msg.error || 'No se pudo guardar.'));
     }
 
-    const btn = document.getElementById('btnGuardar');
+    limpiarPeticion(msg.requestId);
+  }
 
-    btn.disabled = false;
-    btn.textContent = 'CONFIRMAR SALIDA';
+  function limpiarPeticion(requestId){
+    const req = peticiones.get(requestId);
 
-    if(!msg.ok){
-      return mostrarStatus(
-        msg.error || 'No se pudo guardar.',
-        'error',
-        0
-      );
+    if(!req) return;
+
+    clearTimeout(req.timeout);
+
+    setTimeout(() => {
+      try{req.form.remove();}catch(e){}
+      try{req.iframe.remove();}catch(e){}
+    }, 150);
+
+    peticiones.delete(requestId);
+  }
+
+  function agregarReciente(result){
+    recientes.unshift(result);
+
+    if(recientes.length > 5){
+      recientes.pop();
     }
 
-    const r = msg.result;
+    document.getElementById('counter').textContent =
+      String(Number(document.getElementById('counter').textContent || 0) + 1);
 
-    document
-      .getElementById('formCard')
-      .classList.add('hidden');
+    const box = document.getElementById('recentList');
+    box.innerHTML = '';
 
-    document
-      .getElementById('successCard')
-      .classList.remove('hidden');
+    recientes.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'scan-row';
 
-    document.getElementById('folio').textContent =
-      r.folio;
+      row.innerHTML = `
+        <div>
+          <div class="scan-code">${esc(r.sku)}</div>
+          <div class="scan-time">${esc(r.hora || '')}</div>
+        </div>
+        <div class="check">✓</div>
+      `;
 
-    document.getElementById('resumen').textContent =
-      `${r.fecha} · ${r.totalPiezas} pieza(s) · ${r.totalSku} SKU`;
-
-    ultimoRequestId = '';
+      box.appendChild(row);
+    });
   }
 
-  function nuevaSalida(){
-    articulos = [];
-    renderLista();
+  function setStatus(main,sub,tipo){
+    const box = document.getElementById('statusBox');
 
-    document.getElementById('motivo').value = '';
-    document.getElementById('autoriza').value = '';
-    document.getElementById('destino').value = '';
-    document.getElementById('observaciones').value = '';
-    document.getElementById('sku').value = '';
-    document.getElementById('cantidad').value = 1;
+    box.className = 'status' + (tipo ? ' ' + tipo : '');
 
-    document
-      .getElementById('successCard')
-      .classList.add('hidden');
-
-    document
-      .getElementById('formCard')
-      .classList.remove('hidden');
+    document.getElementById('statusMain').textContent = main || '';
+    document.getElementById('statusSub').textContent = sub || '';
   }
 
-  function jsonp(action, params = {}){
-    return new Promise((resolve, reject) => {
+  function flashOk(){
+    const el = document.getElementById('scannerShell');
 
-      if(!apiConfigurada()){
-        reject(new Error('API_URL no configurada.'));
-        return;
-      }
+    el.classList.remove('flash-error');
+    el.classList.add('flash-ok');
 
-      const callbackName =
-        '__jsonp_' +
+    setTimeout(() => {
+      el.classList.remove('flash-ok');
+    }, 750);
+  }
+
+  function flashError(){
+    const el = document.getElementById('scannerShell');
+
+    el.classList.remove('flash-ok');
+    el.classList.add('flash-error');
+
+    setTimeout(() => {
+      el.classList.remove('flash-error');
+    }, 1100);
+  }
+
+  function beep(){
+    try{
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.frequency.value = 760;
+      gain.gain.value = .045;
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + .07);
+
+      setTimeout(() => ctx.close(), 180);
+    }catch(e){}
+  }
+
+  function toggleManual(){
+    document.getElementById('manualBox').classList.toggle('hidden');
+  }
+
+  function registrarManual(){
+    const input = document.getElementById('manualSku');
+    const sku = String(input.value || '').trim();
+
+    if(!sku) return;
+
+    input.value = '';
+    detectarCodigo(sku);
+  }
+
+  function decodificarJwt(token){
+    const parte = token.split('.')[1];
+
+    if(!parte) throw new Error('Credencial de Google inválida.');
+
+    const base64 = parte.replace(/-/g,'+').replace(/_/g,'/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+
+    return JSON.parse(json);
+  }
+
+  function jsonp(action,params={}){
+    return new Promise((resolve,reject) => {
+      const callback =
+        '__cb_' +
         Date.now() +
         '_' +
-        (++jsonpCounter);
+        Math.random().toString(36).slice(2);
 
       const query = new URLSearchParams({
-        action: action,
-        callback: callbackName,
-        _: Date.now().toString(),
+        action,
+        callback,
+        _:Date.now().toString(),
         ...params
       });
 
       const script = document.createElement('script');
 
-      const timeout = setTimeout(() => {
+      const timer = setTimeout(() => {
         cleanup();
-        reject(new Error('Tiempo de espera agotado.'));
-      }, 12000);
+        reject(new Error('No respondió Apps Script.'));
+      },12000);
 
       function cleanup(){
-        clearTimeout(timeout);
+        clearTimeout(timer);
 
-        try{
-          delete window[callbackName];
-        }catch(e){
-          window[callbackName] = undefined;
+        try{delete window[callback];}catch(e){
+          window[callback] = undefined;
         }
 
-        if(script.parentNode){
-          script.parentNode.removeChild(script);
-        }
+        try{script.remove();}catch(e){}
       }
 
-      window[callbackName] = data => {
+      window[callback] = data => {
         cleanup();
         resolve(data);
       };
 
       script.onerror = () => {
         cleanup();
-        reject(new Error('No se pudo cargar respuesta del servidor.'));
+        reject(new Error('No se pudo conectar con Apps Script.'));
       };
 
-      script.src =
-        API_URL +
-        '?' +
-        query.toString();
-
+      script.src = API_URL + '?' + query.toString();
       document.body.appendChild(script);
     });
-  }
-
-  function mostrarStatus(msg, tipo = '', tiempo = 4500){
-    const s = document.getElementById('status');
-
-    s.textContent = msg;
-    s.className = 'status';
-
-    if(tipo){
-      s.classList.add(tipo);
-    }
-
-    s.classList.remove('hidden');
-
-    if(tiempo > 0){
-      setTimeout(() => {
-        s.classList.add('hidden');
-      }, tiempo);
-    }
-  }
-
-  function correoValido(correo){
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      String(correo || '')
-    );
   }
 
   function esc(s){
