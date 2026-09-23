@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+
+  <title>Salida de mercancía</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#d1d5db;
+      --primary:#111827;
+      --soft:#e5e7eb;
+      --blue:#dbeafe;
+      --blueText:#1d4ed8;
+      --danger:#fee2e2;
+      --dangerText:#b91c1c;
+      --ok:#dcfce7;
+      --okText:#166534;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial,Helvetica,sans-serif;
+    }
+
+    .app{
+      max-width:650px;
+      margin:auto;
+      padding:18px 14px 42px;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 5px 18px rgba(0,0,0,.07);
+      margin-bottom:14px;
+    }
+
+    h1{
+      font-size:22px;
+      margin:0 0 4px;
+    }
+
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:18px;
+    }
+
+    label{
+      display:block;
+      font-weight:700;
+      font-size:13px;
+      margin:14px 0 6px;
+    }
+
+    input,select,textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      font-size:16px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus{
+      border-color:#6b7280;
+    }
+
+    textarea{
+      min-height:82px;
+      resize:vertical;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr 92px;
+      gap:8px;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:9px;
+    }
+
+    button{
+      border:0;
+      border-radius:12px;
+      padding:13px 12px;
+      font-size:15px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    .primary{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    .secondary{
+      background:var(--soft);
+      color:var(--text);
+    }
+
+    .scan{
+      background:var(--blue);
+      color:var(--blueText);
+    }
+
+    .danger{
+      background:var(--danger);
+      color:var(--dangerText);
+      padding:7px 10px;
+    }
+
+    .articulo{
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      padding:12px;
+      margin-top:9px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .sku{
+      font-weight:800;
+      word-break:break-all;
+    }
+
+    .desc{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:3px;
+    }
+
+    .qty{
+      font-size:13px;
+      margin-top:4px;
+    }
+
+    #reader{
+      margin-top:12px;
+      border-radius:12px;
+      overflow:hidden;
+      background:#000;
+    }
+
+    .hidden{
+      display:none!important;
+    }
+
+    .status{
+      padding:11px;
+      border-radius:10px;
+      margin-top:12px;
+      font-size:14px;
+      background:#eff6ff;
+      color:#1d4ed8;
+    }
+
+    .status.error{
+      background:var(--danger);
+      color:var(--dangerText);
+    }
+
+    .status.ok{
+      background:var(--ok);
+      color:var(--okText);
+    }
+
+    .success{
+      text-align:center;
+      padding:20px 8px;
+    }
+
+    .success .check{
+      font-size:42px;
+    }
+
+    .success h2{
+      margin:8px 0;
+    }
+
+    .folio{
+      font-size:21px;
+      font-weight:800;
+    }
+
+    .mini{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:5px;
+    }
+
+    .loading{
+      opacity:.7;
+      pointer-events:none;
+    }
+
+    iframe.backend-frame{
+      position:absolute;
+      width:1px;
+      height:1px;
+      border:0;
+      left:-9999px;
+      top:-9999px;
+    }
+
+    @media (max-width:420px){
+      .app{padding-left:10px;padding-right:10px}
+      .card{padding:15px}
+      .actions{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="card" id="formCard">
+
+    <h1>Salida de mercancía</h1>
+    <div class="sub">Registro durante tienda cerrada</div>
+
+    <label>Correo</label>
+    <input
+      id="correo"
+      type="email"
+      autocomplete="email"
+      placeholder="correo@empresa.com"
+    >
+    <div class="mini">Se recuerda en este dispositivo.</div>
+
+    <label>Nombre</label>
+    <input
+      id="nombre"
+      autocomplete="name"
+      placeholder="Nombre de quien realiza la salida"
+    >
+
+    <label>Bodega</label>
+    <select id="bodega">
+      <option value="">Cargando...</option>
+    </select>
+
+    <label>Motivo</label>
+    <select id="motivo">
+      <option value="">Cargando...</option>
+    </select>
+
+    <label>Quién autoriza</label>
+    <input
+      id="autoriza"
+      placeholder="Nombre o número de empleado"
+    >
+
+    <label>Destino</label>
+    <input
+      id="destino"
+      placeholder="¿A dónde se lleva?"
+    >
+
+    <label>Agregar mercancía</label>
+
+    <div class="row">
+      <input
+        id="sku"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="Escanea o escribe SKU"
+      >
+
+      <input
+        id="cantidad"
+        type="number"
+        min="1"
+        step="1"
+        value="1"
+      >
+    </div>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="secondary"
+        onclick="agregarSkuManual()"
+      >
+        ＋ Agregar
+      </button>
+
+      <button
+        type="button"
+        class="scan"
+        onclick="abrirScanner()"
+      >
+        ▣ Escanear
+      </button>
+    </div>
+
+    <div id="scannerWrap" class="hidden">
+      <div id="reader"></div>
+
+      <button
+        type="button"
+        class="secondary"
+        style="width:100%;margin-top:8px"
+        onclick="cerrarScanner()"
+      >
+        Cerrar cámara
+      </button>
+    </div>
+
+    <div id="lista"></div>
+
+    <label>Observaciones</label>
+    <textarea
+      id="observaciones"
+      placeholder="Opcional"
+    ></textarea>
+
+    <button
+      id="btnGuardar"
+      class="primary"
+      style="width:100%;margin-top:16px"
+      onclick="guardar()"
+    >
+      CONFIRMAR SALIDA
+    </button>
+
+    <div id="status" class="status hidden"></div>
+
+  </div>
+
+  <div class="card success hidden" id="successCard">
+    <div class="check">✓</div>
+    <h2>Salida registrada</h2>
+    <div class="folio" id="folio"></div>
+    <div id="resumen" class="sub" style="margin-top:8px"></div>
+
+    <button
+      class="primary"
+      style="width:100%"
+      onclick="nuevaSalida()"
+    >
+      Nueva salida
+    </button>
+  </div>
+
+</div>
+
+<iframe
+  id="backendFrame"
+  name="backendFrame"
+  class="backend-frame"
+></iframe>
+
+<form
+  id="backendForm"
+  method="POST"
+  target="backendFrame"
+  class="hidden"
+>
+  <input type="hidden" name="payload" id="backendPayload">
+  <input type="hidden" name="requestId" id="backendRequestId">
+</form>
+
+<script>
+  /*************************************************************
+   * PEGA AQUÍ LA URL DEL WEB APP DE APPS SCRIPT.
+   * Debe terminar en /exec
+   *************************************************************/
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwxLnWaSq2SosMGELgnIdBv3URvlhWCfXtzYC4NKmHnK_cUDmtYHhPAO5H6DBaqZeVahw/exec';
+
+  let articulos = [];
+  let scanner = null;
+  let ultimoRequestId = '';
+  let jsonpCounter = 0;
+
+  document.addEventListener('DOMContentLoaded', iniciar);
+
+  async function iniciar(){
+    restaurarIdentidad();
+
+    document.getElementById('sku').addEventListener('keydown', e => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        agregarSkuManual();
+      }
+    });
+
+    window.addEventListener('message', recibirRespuestaBackend);
+
+    if(!apiConfigurada()){
+      llenarSelect(
+        'bodega',
+        ['Bodega Deportes','Bodega Calzado Deportivo'],
+        'Selecciona bodega'
+      );
+
+      llenarSelect(
+        'motivo',
+        ['Traslado','Entrega','Reparación / servicio','Exhibición / evento','Otro'],
+        'Selecciona motivo'
+      );
+
+      mostrarStatus(
+        'Falta pegar la URL del Apps Script en API_URL.',
+        'error',
+        0
+      );
+
+      return;
+    }
+
+    try{
+      const resp = await jsonp('inicial');
+
+      if(!resp.ok){
+        throw new Error(resp.error || 'No se pudo cargar configuración.');
+      }
+
+      llenarSelect(
+        'bodega',
+        resp.data.bodegas || [],
+        'Selecciona bodega'
+      );
+
+      llenarSelect(
+        'motivo',
+        resp.data.motivos || [],
+        'Selecciona motivo'
+      );
+
+    }catch(err){
+      mostrarStatus(
+        'No se pudo conectar con Apps Script: ' + err.message,
+        'error',
+        0
+      );
+    }
+  }
+
+  function apiConfigurada(){
+    return (
+      API_URL &&
+      API_URL.startsWith('https://script.google.com/macros/s/') &&
+      API_URL.endsWith('/exec')
+    );
+  }
+
+  function restaurarIdentidad(){
+    try{
+      document.getElementById('correo').value =
+        localStorage.getItem('salidas_correo') || '';
+
+      document.getElementById('nombre').value =
+        localStorage.getItem('salidas_nombre') || '';
+    }catch(e){}
+  }
+
+  function guardarIdentidad(){
+    try{
+      localStorage.setItem(
+        'salidas_correo',
+        document.getElementById('correo').value.trim()
+      );
+
+      localStorage.setItem(
+        'salidas_nombre',
+        document.getElementById('nombre').value.trim()
+      );
+    }catch(e){}
+  }
+
+  function llenarSelect(id, opciones, placeholder){
+    const el = document.getElementById(id);
+
+    el.innerHTML = '';
+
+    const inicial = document.createElement('option');
+    inicial.value = '';
+    inicial.textContent = placeholder;
+    el.appendChild(inicial);
+
+    (opciones || []).forEach(v => {
+      const op = document.createElement('option');
+      op.value = v;
+      op.textContent = v;
+      el.appendChild(op);
+    });
+  }
+
+  function agregarSkuManual(){
+    const sku = String(
+      document.getElementById('sku').value || ''
+    ).trim();
+
+    if(!sku){
+      return mostrarStatus('Escribe o escanea un SKU.', 'error');
+    }
+
+    buscarYAgregarSku(sku);
+  }
+
+  async function buscarYAgregarSku(sku){
+    const cantidad = Number(
+      document.getElementById('cantidad').value || 1
+    );
+
+    if(!Number.isFinite(cantidad) || cantidad <= 0){
+      return mostrarStatus('Cantidad inválida.', 'error');
+    }
+
+    try{
+      let descripcion = '';
+      let encontrado = false;
+
+      if(apiConfigurada()){
+        const resp = await jsonp('buscarSku', { sku });
+
+        if(!resp.ok){
+          throw new Error(resp.error || 'Error buscando SKU.');
+        }
+
+        encontrado = !!resp.data.encontrado;
+        descripcion = resp.data.descripcion || '';
+      }
+
+      if(!encontrado){
+        descripcion = prompt(
+          'SKU no encontrado en CATALOGO_SKU.\nEscribe una descripción:'
+        ) || 'SKU no catalogado';
+      }
+
+      const existente = articulos.find(
+        a => a.sku === String(sku)
+      );
+
+      if(existente){
+        existente.cantidad += cantidad;
+      }else{
+        articulos.push({
+          sku: String(sku),
+          descripcion: descripcion,
+          cantidad: cantidad
+        });
+      }
+
+      document.getElementById('sku').value = '';
+      document.getElementById('cantidad').value = 1;
+
+      renderLista();
+
+      setTimeout(() => {
+        document.getElementById('sku').focus();
+      }, 50);
+
+    }catch(err){
+      mostrarStatus(
+        'No se pudo consultar el SKU: ' + err.message,
+        'error'
+      );
+    }
+  }
+
+  function renderLista(){
+    const lista = document.getElementById('lista');
+    lista.innerHTML = '';
+
+    articulos.forEach((a, i) => {
+      const div = document.createElement('div');
+      div.className = 'articulo';
+
+      div.innerHTML = `
+        <div>
+          <div class="sku">${esc(a.sku)}</div>
+          <div class="desc">
+            ${esc(a.descripcion || 'Sin descripción')}
+          </div>
+          <div class="qty">
+            Cantidad: ${Number(a.cantidad)}
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            class="danger"
+            onclick="eliminarArticulo(${i})"
+          >
+            Eliminar
+          </button>
+        </div>
+      `;
+
+      lista.appendChild(div);
+    });
+  }
+
+  function eliminarArticulo(i){
+    articulos.splice(i, 1);
+    renderLista();
+  }
+
+  async function abrirScanner(){
+    if(scanner) return;
+
+    document
+      .getElementById('scannerWrap')
+      .classList.remove('hidden');
+
+    try{
+      scanner = new Html5Qrcode(
+        'reader',
+        {
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.QR_CODE
+          ]
+        }
+      );
+
+      await scanner.start(
+        { facingMode:'environment' },
+        {
+          fps:10,
+          qrbox:{
+            width:280,
+            height:120
+          },
+          aspectRatio:1.777778
+        },
+        async decodedText => {
+          const codigo = String(decodedText || '').trim();
+
+          if(!codigo) return;
+
+          await cerrarScanner();
+
+          document.getElementById('sku').value = codigo;
+
+          buscarYAgregarSku(codigo);
+        },
+        () => {}
+      );
+
+    }catch(err){
+      scanner = null;
+
+      document
+        .getElementById('scannerWrap')
+        .classList.add('hidden');
+
+      mostrarStatus(
+        'No se pudo abrir la cámara. Revisa el permiso del navegador.',
+        'error'
+      );
+    }
+  }
+
+  async function cerrarScanner(){
+    if(scanner){
+      try{
+        if(scanner.isScanning){
+          await scanner.stop();
+        }
+
+        await scanner.clear();
+      }catch(e){}
+
+      scanner = null;
+    }
+
+    document
+      .getElementById('scannerWrap')
+      .classList.add('hidden');
+  }
+
+  function guardar(){
+    if(!apiConfigurada()){
+      return mostrarStatus(
+        'Primero pega la URL del Apps Script en API_URL.',
+        'error'
+      );
+    }
+
+    const data = {
+      correo: document.getElementById('correo').value.trim(),
+      nombre: document.getElementById('nombre').value.trim(),
+      bodega: document.getElementById('bodega').value,
+      motivo: document.getElementById('motivo').value,
+      autoriza: document.getElementById('autoriza').value.trim(),
+      destino: document.getElementById('destino').value.trim(),
+      observaciones: document.getElementById('observaciones').value.trim(),
+      articulos: articulos
+    };
+
+    if(!data.correo){
+      return mostrarStatus('Captura el correo.', 'error');
+    }
+
+    if(!correoValido(data.correo)){
+      return mostrarStatus('El correo no es válido.', 'error');
+    }
+
+    if(!data.nombre){
+      return mostrarStatus('Captura el nombre.', 'error');
+    }
+
+    if(!data.bodega){
+      return mostrarStatus('Selecciona una bodega.', 'error');
+    }
+
+    if(!data.motivo){
+      return mostrarStatus('Selecciona un motivo.', 'error');
+    }
+
+    if(!articulos.length){
+      return mostrarStatus('Agrega al menos un SKU.', 'error');
+    }
+
+    guardarIdentidad();
+
+    const btn = document.getElementById('btnGuardar');
+
+    btn.disabled = true;
+    btn.textContent = 'GUARDANDO...';
+
+    ultimoRequestId =
+      Date.now().toString(36) +
+      Math.random().toString(36).slice(2);
+
+    const form = document.getElementById('backendForm');
+
+    form.action = API_URL;
+
+    document.getElementById('backendPayload').value =
+      JSON.stringify(data);
+
+    document.getElementById('backendRequestId').value =
+      ultimoRequestId;
+
+    form.submit();
+
+    setTimeout(() => {
+      if(btn.disabled){
+        btn.disabled = false;
+        btn.textContent = 'CONFIRMAR SALIDA';
+
+        mostrarStatus(
+          'No llegó respuesta del servidor. Revisa el Sheet antes de volver a enviar.',
+          'error',
+          0
+        );
+      }
+    }, 20000);
+  }
+
+  function recibirRespuestaBackend(event){
+    const msg = event.data;
+
+    if(
+      !msg ||
+      typeof msg !== 'object' ||
+      msg.type !== 'SALIDA_GUARDADA'
+    ){
+      return;
+    }
+
+    if(
+      ultimoRequestId &&
+      msg.requestId !== ultimoRequestId
+    ){
+      return;
+    }
+
+    const btn = document.getElementById('btnGuardar');
+
+    btn.disabled = false;
+    btn.textContent = 'CONFIRMAR SALIDA';
+
+    if(!msg.ok){
+      return mostrarStatus(
+        msg.error || 'No se pudo guardar.',
+        'error',
+        0
+      );
+    }
+
+    const r = msg.result;
+
+    document
+      .getElementById('formCard')
+      .classList.add('hidden');
+
+    document
+      .getElementById('successCard')
+      .classList.remove('hidden');
+
+    document.getElementById('folio').textContent =
+      r.folio;
+
+    document.getElementById('resumen').textContent =
+      `${r.fecha} · ${r.totalPiezas} pieza(s) · ${r.totalSku} SKU`;
+
+    ultimoRequestId = '';
+  }
+
+  function nuevaSalida(){
+    articulos = [];
+    renderLista();
+
+    document.getElementById('motivo').value = '';
+    document.getElementById('autoriza').value = '';
+    document.getElementById('destino').value = '';
+    document.getElementById('observaciones').value = '';
+    document.getElementById('sku').value = '';
+    document.getElementById('cantidad').value = 1;
+
+    document
+      .getElementById('successCard')
+      .classList.add('hidden');
+
+    document
+      .getElementById('formCard')
+      .classList.remove('hidden');
+  }
+
+  function jsonp(action, params = {}){
+    return new Promise((resolve, reject) => {
+
+      if(!apiConfigurada()){
+        reject(new Error('API_URL no configurada.'));
+        return;
+      }
+
+      const callbackName =
+        '__jsonp_' +
+        Date.now() +
+        '_' +
+        (++jsonpCounter);
+
+      const query = new URLSearchParams({
+        action: action,
+        callback: callbackName,
+        _: Date.now().toString(),
+        ...params
+      });
+
+      const script = document.createElement('script');
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('Tiempo de espera agotado.'));
+      }, 12000);
+
+      function cleanup(){
+        clearTimeout(timeout);
+
+        try{
+          delete window[callbackName];
+        }catch(e){
+          window[callbackName] = undefined;
+        }
+
+        if(script.parentNode){
+          script.parentNode.removeChild(script);
+        }
+      }
+
+      window[callbackName] = data => {
+        cleanup();
+        resolve(data);
+      };
+
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('No se pudo cargar respuesta del servidor.'));
+      };
+
+      script.src =
+        API_URL +
+        '?' +
+        query.toString();
+
+      document.body.appendChild(script);
+    });
+  }
+
+  function mostrarStatus(msg, tipo = '', tiempo = 4500){
+    const s = document.getElementById('status');
+
+    s.textContent = msg;
+    s.className = 'status';
+
+    if(tipo){
+      s.classList.add(tipo);
+    }
+
+    s.classList.remove('hidden');
+
+    if(tiempo > 0){
+      setTimeout(() => {
+        s.classList.add('hidden');
+      }, tiempo);
+    }
+  }
+
+  function correoValido(correo){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      String(correo || '')
+    );
+  }
+
+  function esc(s){
+    return String(s ?? '')
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","&#039;");
+  }
+</script>
+
+</body>
+</html>
